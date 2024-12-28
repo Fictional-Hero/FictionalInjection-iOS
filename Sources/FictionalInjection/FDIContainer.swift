@@ -1,8 +1,8 @@
-public struct FDIContainer: Resolver {
+public class FDIContainer: Resolver {
     public static var shared = FDIContainer()
     var factories: [FactoryWrapper] = []
 
-    public mutating func bind<ProtocolType>(_ type: ProtocolType.Type, name: String = "", _ factory: @escaping (Resolver) -> ProtocolType) {
+    public func bind<ProtocolType>(_ type: ProtocolType.Type, name: String = "", _ factory: @escaping (Resolver) -> ProtocolType) {
         assert(!factories.contains(where: { $0.supports(type) && $0.name == name }))
 
         let newFactory = GenericFactory(type, factory: { resolver in
