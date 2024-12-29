@@ -6,7 +6,7 @@ protocol TestProcotol {}
 final class FictionalInjectionTests: XCTestCase {
     
     func testContainerResolvesCorrectType() {
-        var container = FDIContainer()
+        let container = FDIContainer()
         
         class TestClass: TestProcotol {}
         container.bind(TestProcotol.self) { _ in
@@ -18,11 +18,49 @@ final class FictionalInjectionTests: XCTestCase {
         XCTAssertTrue(resolvedService is TestClass)
     }
     
+    func testContainerResolvesUniqueTransientObject() {
+        let container = FDIContainer()
+        
+        class TestClass: Equatable {
+            let id = UUID()
+            static func == (lhs: TestClass, rhs: TestClass) -> Bool {
+                lhs.id == rhs.id
+            }
+        }
+        
+        container.bind(TestClass.self) { _ in
+            TestClass()
+        }
+        
+        let resolvedService = container.resolve(TestClass.self)
+        let resolvedService2 = container.resolve(TestClass.self)
+        XCTAssertNotEqual(resolvedService, resolvedService2)
+    }
+    
+    func testContainerResolvesSameSingletonObject() {
+        let container = FDIContainer()
+        
+        class TestClass: Equatable {
+            let id = UUID()
+            static func == (lhs: TestClass, rhs: TestClass) -> Bool {
+                lhs.id == rhs.id
+            }
+        }
+        
+        container.bind(TestClass.self, scope: .singleton) { _ in
+            TestClass()
+        }
+        
+        let resolvedService = container.resolve(TestClass.self)
+        let resolvedService2 = container.resolve(TestClass.self)
+        XCTAssertEqual(resolvedService, resolvedService2)
+    }
+    
     func testTransientObjectIsDeallocated() {
         class TestClass {}
         weak var weakReference: TestClass?
 
-        var container = FDIContainer()
+        let container = FDIContainer()
         container.bind(TestClass.self) { _ in
             TestClass()
         }
@@ -40,7 +78,7 @@ final class FictionalInjectionTests: XCTestCase {
         class TestClass {}
         weak var weakReference: TestClass?
 
-        var container = FDIContainer()
+        let container = FDIContainer()
         container.bind(TestClass.self, scope: .singleton) { _ in
             TestClass()
         }
