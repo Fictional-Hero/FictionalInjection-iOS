@@ -74,7 +74,7 @@ final class FictionalInjectionTests: XCTestCase {
         XCTAssertNil(weakReference)
     }
     
-    func testSingletonObjectIsDeallocated() {
+    func testSingletonObjectIsNotDeallocated() {
         class TestClass {}
         weak var weakReference: TestClass?
 
