@@ -26,14 +26,31 @@ final class FactoryWrapper {
 }
 
 
-struct GenericFactory<ProtocolType>: ServiceFactory {
+class GenericFactory<ProtocolType>: ServiceFactory {
     private let factory: (Resolver) -> ProtocolType
+    private var instance: ProtocolType? = nil
+    private let scope: FDIScope
 
-    init(_ type: ProtocolType.Type, factory: @escaping (Resolver) -> ProtocolType) {
+    init(_ type: ProtocolType.Type, scope: FDIScope, factory: @escaping (Resolver) -> ProtocolType) {
         self.factory = factory
+        self.scope = scope
     }
 
     func resolve(_ resolver: Resolver) -> ProtocolType {
-        return factory(resolver)
+        switch scope {
+        case .singleton:
+            if instance == nil {
+                instance = factory(resolver)
+            }
+            return instance!
+        case .transient:
+            return factory(resolver)
+        }
     }
+}
+
+
+public enum FDIScope {
+    case singleton
+    case transient
 }

@@ -36,12 +36,30 @@ final class FictionalInjectionTests: XCTestCase {
         XCTAssertNil(weakReference)
     }
     
+    func testSingletonObjectIsDeallocated() {
+        class TestClass {}
+        weak var weakReference: TestClass?
+
+        var container = FDIContainer()
+        container.bind(TestClass.self, scope: .singleton) { _ in
+            TestClass()
+        }
+        
+        autoreleasepool {
+            let instance = container.resolve(TestClass.self)
+            weakReference = instance
+            XCTAssertNotNil(weakReference)
+        }
+        
+        XCTAssertNotNil(weakReference)
+    }
+    
     func testGenericFactoryReleasesObject() {
         class TestClass {}
         weak var weakReference: TestClass?
 
         autoreleasepool {
-            let factory = GenericFactory(TestClass.self) { _ in
+            let factory = GenericFactory(TestClass.self, scope: .singleton) { _ in
                 let instance = TestClass()
                 weakReference = instance
                 return instance
@@ -60,7 +78,7 @@ final class FictionalInjectionTests: XCTestCase {
         weak var weakReference: TestClass?
 
         autoreleasepool {
-            let factory = GenericFactory(TestClass.self) { _ in
+            let factory = GenericFactory(TestClass.self, scope: .singleton) { _ in
                 let instance = TestClass()
                 weakReference = instance
                 return instance
