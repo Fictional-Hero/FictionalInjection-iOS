@@ -13,6 +13,7 @@ public class FDIContainer: Resolver {
 
     public func resolve<ProtocolType>(_ type: ProtocolType.Type) -> ProtocolType {
         guard let factory = factories.first(where: { $0.supports(type) }) else {
+            debugPrint(type: String(describing: type))
             fatalError("No suitable factory found")
         }
         return factory.resolve(self)
@@ -20,8 +21,32 @@ public class FDIContainer: Resolver {
     
     public func resolve<ProtocolType>(_ type: ProtocolType.Type, name: String = "") -> ProtocolType {
         guard let factory = factories.first(where: { $0.supports(type) && $0.name == name}) else {
+            debugPrint(type: String(describing: type))
             fatalError("No suitable factory found")
         }
         return factory.resolve(self)
+    }
+    
+    public func resolveOptional<ProtocolType>(_ type: ProtocolType.Type) -> ProtocolType? {
+        let factory = factories.first(where: { $0.supports(type) })
+        if factory == nil {
+            debugPrint(type: String(describing: type))
+        }
+        return factory?.resolve(self)
+    }
+    
+    public func resolveOptional<ProtocolType>(_ type: ProtocolType.Type, name: String = "") -> ProtocolType? {
+        let factory = factories.first(where: { $0.supports(type) && $0.name == name})
+        if factory == nil {
+            debugPrint(type: String(describing: type))
+        }
+        return factory?.resolve(self)
+    }
+    
+    public func debugPrint(type: String) {
+        print("Failed to find binding: \nAvailable bindings ↴ ")
+        factories.forEach { factory in
+            print("Type: \(type)")
+        }
     }
 }

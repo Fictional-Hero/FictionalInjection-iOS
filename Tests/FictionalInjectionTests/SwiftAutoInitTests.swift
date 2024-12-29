@@ -18,6 +18,30 @@ final class FictionalInjectionTests: XCTestCase {
         XCTAssertTrue(resolvedService is TestClass)
     }
     
+    func testContainerResolvesOptionalType() {
+        let container = FDIContainer()
+        
+        class TestClass {}
+        container.bind(TestClass.self) { _ in
+            TestClass()
+        }
+        
+        let resolvedService = container.resolveOptional(TestClass.self)
+        XCTAssertNotNil(resolvedService)
+    }
+    
+    func testContainerReturnsNilIfOptionalTypeNotBound() {
+        let container = FDIContainer()
+        
+        class TestClass {}
+        container.bind(TestClass.self) { _ in
+            TestClass()
+        }
+        
+        let resolvedService = container.resolveOptional(TestProcotol.self)
+        XCTAssertNil(resolvedService)
+    }
+    
     func testContainerResolvesUniqueTransientObject() {
         let container = FDIContainer()
         
