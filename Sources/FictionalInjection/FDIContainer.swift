@@ -1,14 +1,19 @@
+import Foundation
+
 public class FDIContainer: Resolver {
     public static var shared = FDIContainer()
+    private let lock = NSLock()
     var factories: [FactoryWrapper] = []
 
     public func bind<ProtocolType>(_ type: ProtocolType.Type, scope: FDIScope = .transient, name: String = "", _ factory: @escaping (Resolver) -> ProtocolType) {
-        assert(!factories.contains(where: { $0.supports(type) && $0.name == name }))
-
+        lock.lock()
+        defer { lock.unlock() }
+        assert(!self.factories.contains(where: { $0.supports(type) && $0.name == name }))
+        
         let newFactory = GenericFactory(type, scope: scope, factory: { resolver in
             factory(resolver)
         })
-        factories.append(FactoryWrapper(newFactory, name: name))
+        self.factories.append(FactoryWrapper(newFactory, name: name))
     }
 
     public func resolve<ProtocolType>(_ type: ProtocolType.Type) -> ProtocolType {

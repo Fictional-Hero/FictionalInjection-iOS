@@ -5,6 +5,47 @@ protocol TestProcotol {}
 
 final class FictionalInjectionTests: XCTestCase {
     
+    func testConcurrentBinding() {
+        let container = FDIContainer()
+        let expectation = XCTestExpectation(description: "Concurrent binding should succeed")
+        expectation.expectedFulfillmentCount = 50
+
+        let queue = DispatchQueue.global(qos: .userInitiated)
+        for i in 0..<50 {
+            queue.async {
+                container.bind(String.self, name: "Binding \(i)") { _ in
+                    "Resolved \(i)"
+                }
+                expectation.fulfill()
+            }
+        }
+
+        wait(for: [expectation], timeout: 5.0)
+        XCTAssertEqual(container.factories.count, 50)
+    }
+    
+    func testConcurrentResolution() {
+        let container = FDIContainer()
+        container.bind(String.self) { _ in
+            "Resolved String"
+        }
+        
+        let expectation = XCTestExpectation(description: "Concurrent resolution should succeed")
+        expectation.expectedFulfillmentCount = 100
+        
+        let queue = DispatchQueue.global(qos: .userInitiated)
+        for _ in 0..<100 {
+            queue.async {
+                let resolvedValue: String = container.resolve(String.self)
+                XCTAssertEqual(resolvedValue, "Resolved String")
+                expectation.fulfill()
+            }
+        }
+        
+        wait(for: [expectation], timeout: 5.0)
+    }
+
+    
     func testContainerResolvesCorrectType() {
         let container = FDIContainer()
         
